@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dual Polymorphism: A Conceptual Model for Latent-Space Jailbreaks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Geist+Mono:wght@300;400&family=Geist:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1814;
+    --ink2: #4a4640;
+    --ink3: #8a8480;
+    --paper: #f7f4ef;
+    --paper2: #ede9e2;
+    --accent: #c0392b;
+    --accent2: #e8d5b7;
+    --rule: #d4cfc8;
+    --code-bg: #1e1c18;
+    --code-fg: #d4cfc8;
+    --highlight: #f0e8d0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Newsreader', Georgia, serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 18px;
+    line-height: 1.75;
+    font-weight: 300;
+  }
+
+  /* Header / masthead */
+  .masthead {
+    border-bottom: 1px solid var(--rule);
+    padding: 20px 0;
+    text-align: center;
+  }
+  .masthead .site-name {
+    font-family: 'Geist', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    font-weight: 400;
+  }
+
+  /* Main layout */
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  /* Hero */
+  .hero {
+    padding: 72px 0 56px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 56px;
+  }
+
+  .label {
+    font-family: 'Geist', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  h1 {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 300;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 28px;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--ink2);
+  }
+
+  .byline {
+    font-family: 'Geist', sans-serif;
+    font-size: 13px;
+    color: var(--ink3);
+    font-weight: 300;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .byline strong {
+    color: var(--ink2);
+    font-weight: 400;
+  }
+
+  /* Epistemic status box */
+  .epistemic {
+    background: var(--highlight);
+    border-left: 3px solid var(--accent2);
+    padding: 20px 24px;
+    margin: 0 0 56px;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--ink2);
+    font-family: 'Geist', sans-serif;
+    font-weight: 300;
+  }
+
+  .epistemic .ep-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    font-weight: 500;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .epistemic p + p { margin-top: 10px; }
+
+  /* Body */
+  h2 {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: 26px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    color: var(--ink);
+    margin: 64px 0 20px;
+  }
+
+  h3 {
+    font-family: 'Geist', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    font-weight: 500;
+    margin: 48px 0 16px;
+  }
+
+  p { margin-bottom: 24px; }
+
+  a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+  strong { font-weight: 500; color: var(--ink); }
+
+  em { font-style: italic; }
+
+  /* Pull quote */
+  .pullquote {
+    margin: 48px -48px;
+    padding: 32px 48px;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    font-size: 22px;
+    font-weight: 300;
+    line-height: 1.45;
+    letter-spacing: -0.01em;
+    color: var(--ink2);
+    font-style: italic;
+  }
+
+  @media (max-width: 600px) {
+    .pullquote { margin: 40px 0; padding: 28px 0; }
+  }
+
+  /* Code */
+  code {
+    font-family: 'Geist Mono', monospace;
+    font-size: 14px;
+    background: var(--paper2);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--ink2);
+    font-weight: 300;
+  }
+
+  pre {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    padding: 28px 32px;
+    margin: 32px 0;
+    overflow-x: auto;
+    border-radius: 4px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+  }
+
+  .kw { color: #c792ea; }
+  .cm { color: #5c6a77; font-style: italic; }
+  .st { color: #c3e88d; }
+  .nm { color: #f78c6c; }
+  .fn { color: #82aaff; }
+
+  /* Aside / margin note */
+  .aside {
+    float: right;
+    width: 200px;
+    margin: 0 -240px 24px 24px;
+    font-family: 'Geist', sans-serif;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--ink3);
+    border-top: 1px solid var(--rule);
+    padding-top: 12px;
+    font-weight: 300;
+  }
+
+  @media (max-width: 900px) {
+    .aside {
+      float: none;
+      width: 100%;
+      margin: 0 0 24px;
+      border-top: none;
+      border-left: 2px solid var(--rule);
+      padding: 0 0 0 16px;
+    }
+  }
+
+  /* Defense box */
+  .callout {
+    background: var(--paper2);
+    border: 1px solid var(--rule);
+    padding: 28px 32px;
+    margin: 40px 0;
+    border-radius: 2px;
+  }
+
+  .callout .callout-label {
+    font-family: 'Geist', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    font-weight: 500;
+    margin-bottom: 14px;
+    display: block;
+  }
+
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* Objections */
+  .objection {
+    padding: 20px 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .objection:last-child { border-bottom: 1px solid var(--rule); }
+
+  .objection .obj-title {
+    font-family: 'Geist', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    margin-bottom: 8px;
+    letter-spacing: 0.02em;
+  }
+
+  .objection p { margin-bottom: 0; font-size: 16px; }
+
+  /* Footer */
+  footer {
+    margin-top: 96px;
+    padding: 40px 0;
+    border-top: 1px solid var(--rule);
+    font-family: 'Geist', sans-serif;
+    font-size: 13px;
+    color: var(--ink3);
+    font-weight: 300;
+  }
+
+  footer p + p { margin-top: 8px; margin-bottom: 0; }
+
+  /* HR */
+  hr {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: 56px 0;
+  }
+
+  /* Section number decoration */
+  h2::before {
+    content: attr(data-n) " — ";
+    color: var(--ink3);
+    font-size: 18px;
+    font-weight: 300;
+    font-style: normal;
+  }
+
+  /* Numbered ref list */
+  ol.refs {
+    padding-left: 20px;
+    font-size: 14px;
+    font-family: 'Geist', sans-serif;
+    font-weight: 300;
+    color: var(--ink2);
+    line-height: 1.65;
+  }
+
+  ol.refs li + li { margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="page">
+    <span class="site-name">Maximilian Machedon · Notes on AI Safety</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <div class="hero">
+    <span class="label">ML Safety · Adversarial ML · Mechanistic Interpretability</span>
+    <h1>Dual Polymorphism: On <em>Why</em> Latent-Space Monitors May Not Be Enough</h1>
+    <div class="byline">
+      <span><strong>Maximilian Machedon</strong></span>
+      <span>March 2026</span>
+      <span>Software engineer, not an alignment researcher</span>
+    </div>
+  </div>
+
+  <div class="epistemic">
+    <span class="ep-label">Epistemic status</span>
+    <p>High confidence that the underlying mathematical objects (preimage fibers, polysemanticity) are real and the citations accurate. Moderate confidence that "dual polymorphism" is a useful framing. Low confidence that this scales to frontier models — the discrete token barrier is severe and I have no compute to test it. This is a hypothesis with a conceptual argument, not an empirical finding.</p>
+    <p>I am a software engineer, not an alignment researcher. I used an AI assistant to help formalize these intuitions and source citations, but the core causal model is my own. If anyone with compute finds this worth testing, please do — and a mention by name is always appreciated.</p>
+  </div>
+
+  <p>Current LLM guardrails, both the surface-level semantic filters that scan prompt text and the newer latent-space activation monitors that watch the model's internals, share a common assumption: that an input's semantic meaning and its internal computational trajectory are roughly in correspondence. A prompt asking how to synthesize something dangerous will look dangerous both in text and in the activations it produces at intermediate layers.</p>
+
+  <p>I think this assumption is exploitable in a specific, structurally interesting way. This post is my attempt to articulate that exploit model clearly — not as a claim that I have built it, but as a hypothesis that I believe is testable and worth examining.</p>
+
+  <p>The core idea is simple. Because the forward pass of a transformer is a non-injective function, many different inputs can produce the same internal representation at any given layer. If you can craft an input that (a) looks like benign, fluent text at the surface and (b) produces the same intermediate representation as a malicious prompt at some specific layer, you have bypassed both semantic filters and single-layer activation probes simultaneously. I am calling this <strong>dual polymorphism</strong>: polymorphism at the surface, and polymorphism in the latent space.</p>
+
+  <div class="pullquote">
+    The attack is not about fooling a classifier. It is about exploiting the geometry of the function itself.
+  </div>
+
+  <h2 data-n="1">The geometry of non-injectivity</h2>
+
+  <p>Start with something that is just mathematics. Any function f: X → Y where the output space Y has lower "capacity" than the input space X is necessarily non-injective — multiple inputs map to the same output. For a linear map represented by a matrix W of dimensions m × n where m &lt; n, this is exact: the null space of W is non-trivial, meaning there exists a whole subspace of inputs that all produce the same output.</p>
+
+  <p>For a deep neural network, the situation is more complex because of the non-linearities (ReLU activations produce piecewise linear functions), but the core structure holds: for any target activation y at an intermediate layer, the preimage f⁻¹(y) — the set of all inputs that produce that activation — is in general large. The mathematical name for this set is a <em>fiber</em>. The claim that fibers exist is not a hypothesis; it is a consequence of the architecture.</p>
+
+  <div class="aside">A fiber is the preimage of a point under a function. If f(x) = y, then the fiber over y is all inputs x' such that f(x') = y. Non-injectivity means fibers contain more than one point.</div>
+
+  <p>Now introduce Anthropic's work on <a href="https://transformer-circuits.pub/2022/toy_model/index.html">toy models of superposition</a> (Elhage et al., 2022). This research demonstrates that neural networks in the superposition regime represent more features than they have dimensions by encoding them as nearly-orthogonal directions in a shared space. Multiple concepts share overlapping geometry in activation space. The practical consequence of this is that you cannot simply look at a single neuron or even a single layer's activations and read off the model's "intent" — the representation is polysemantic.</p>
+
+  <p>Put these two observations together. Fibers are large (non-injectivity). Representations are polysemantic (superposition). The fiber over any target activation is not a single exotic point but a high-dimensional structure that spreads through input space. The question becomes: does this fiber intersect the region of input space corresponding to fluent, benign-looking text?</p>
+
+  <p>I believe it does, and that is the hypothesis.</p>
+
+  <h2 data-n="2">The dual polymorphism attack model</h2>
+
+  <h3>Surface polymorphism</h3>
+
+  <p>The first layer of the attack is familiar from the adversarial examples literature. You want your input to look benign. In image space, this means staying close to a natural image. In token space, it means staying close to fluent, low-perplexity text. The existing work on greedy coordinate gradient (GCG) adversarial suffixes, and the subsequent work on perplexity-filtered variants, has already demonstrated that this is achievable — you can find token sequences that appear unremarkable to a human reader while causing specific model behaviors.</p>
+
+  <p>Surface polymorphism is, in this framing, not new. What I want to add is the second layer.</p>
+
+  <h3>Latent polymorphism</h3>
+
+  <p>The second layer of the attack is about intermediate representations. Suppose you have a target prompt — something direct and malicious that you would never get past a filter. Instead of submitting that prompt, you submit something different that produces approximately the same activation pattern at some intermediate layer, say layer 32 of a 64-layer model. From that layer onward, the model's forward pass is indistinguishable from the malicious case, because the subsequent layers are operating on the same geometric "shape."</p>
+
+  <p>The craft is constructing something that achieves both constraints simultaneously: low perplexity (looks like normal text) and approximate latent equivalence at the target layer (produces the target activation). This is an optimization problem with two competing objectives, and whether it has a feasible solution depends on whether the fluency constraint region and the target fiber intersect. That intersection is the crux of the hypothesis, and it is what I cannot currently test at scale.</p>
+
+  <div class="callout">
+    <span class="callout-label">What the attack looks like in practice (hypothetically)</span>
+    <p>Imagine a set-theory logic puzzle written as a paragraph of normal prose. The puzzle, if followed as abstract reasoning, terminates in a state that — when represented as a latent activation — shares sufficient geometry with a prompt that asks the model to dump its context or bypass its guidelines. The surface is a math puzzle. The latent shape, at layer N, is something the model processes the same way it would process the direct malicious request.</p>
+    <p>The model does not "read" the surface. It processes activations. If the activations match, the behavior may match.</p>
+  </div>
+
+  <h2 data-n="3">Why this is different from what already exists</h2>
+
+  <p>I want to be careful here, because the honest version of this requires acknowledging how much is already known.</p>
+
+  <p>Bailey et al. (2024), in <em>Obfuscated Activations Bypass LLM Latent-Space Defenses</em>, demonstrated empirically that optimization can be used to find inputs that bypass internal activation monitors without changing the model's output behavior. That paper is the strongest empirical precedent for the latent layer of this attack. What Bailey et al. show is that it works; what I am trying to describe is <em>why</em> it works, in terms of the geometry of preimage fibers and polysemanticity.</p>
+
+  <p>GCG (Zou et al., 2023) and its perplexity-filtered descendants address the surface layer: finding fluent adversarial token sequences. The combination of GCG-style token optimization with a target-activation loss function is the operational form of the dual polymorphism attack. I am not claiming this combination has never been tried; I am claiming the framing of "hitting the fiber while satisfying the perplexity constraint" is a useful way to think about why it might succeed or fail, and under what conditions.</p>
+
+  <p>The genuinely new claim in this post is the defensive prescription, which I will come to shortly.</p>
+
+  <h2 data-n="4">The three serious objections</h2>
+
+  <p>To be useful, a hypothesis has to survive its best counterarguments. Here are the ones that I find most serious.</p>
+
+  <div class="objection">
+    <div class="obj-title">The discrete token barrier</div>
+    <p>Continuous optimization over activation space is tractable. Optimizing discrete tokens to produce a specific continuous activation at layer 32 of an 80-layer transformer is a very different problem. The gradient signal degrades severely across the discrete-to-continuous interface. GCG manages this through greedy coordinate search rather than true gradient descent; whether that can be combined with a latent-layer target loss and a perplexity constraint simultaneously is an open question. My honest estimate is that this is the most likely place the hypothesis fails at scale.</p>
+  </div>
+
+  <div class="objection">
+    <div class="obj-title">Attention routing divergence</div>
+    <p>Transformers are not just MLPs stacked on top of each other. The attention mechanism routes information dynamically based on the input. A fluent logic puzzle and a direct malicious prompt will activate very different attention patterns in the early layers. Even if you can force approximate convergence in the residual stream at some intermediate layer, the attention-weighted information routing in the preceding layers may be different enough that the "equivalent" activation is not actually equivalent in terms of what information it encodes. The fiber over a target activation in the residual stream is not the same as the fiber over a target <em>behavior</em>.</p>
+  </div>
+
+  <div class="objection">
+    <div class="obj-title">Empty feasible region in RLHF'd models</div>
+    <p>Reinforcement learning from human feedback reshapes the model's internal geometry. In a heavily RLHF-trained frontier model, it is possible that the region of fluent-text inputs and the fiber over any malicious target activation simply do not intersect. The RLHF training may have, as a side effect, moved these regions apart in activation space. This is not guaranteed — RLHF is a coarse optimization process — but it is a real possibility, and it is one reason I am skeptical this scales directly from weaker models.</p>
+  </div>
+
+  <h2 data-n="5">The defensive implication: trajectory monitoring</h2>
+
+  <p>This is the part I feel most confident about, independent of whether the attack hypothesis holds.</p>
+
+  <p>If the attack works as described, here is what it looks like to a single-layer activation monitor: the input passes through the early layers with activations that look entirely normal — no flag. At layer N, the activations converge to the target fiber — the monitor at that layer might catch it, but only if it happens to be probing that specific layer. After layer N, the activations are indistinguishable from the malicious case. A monitor at any other layer sees nothing unusual.</p>
+
+  <p>The attack exploits the fact that monitors take snapshots. The input and the malicious reference share a shape at exactly one point in the forward pass; everywhere else, they look different. A snapshot at the wrong layer catches nothing.</p>
+
+  <div class="callout">
+    <span class="callout-label">The defensive prescription</span>
+    <p>Single-layer activation probing is structurally insufficient against this class of attack. A robust monitor needs to audit the full topological trajectory of the forward pass — not just "does activation at layer N match a known-bad signature," but "does the trajectory through layers 1 through N exhibit convergence behavior consistent with an adversarial input targeting a fiber at layer N."</p>
+    <p>Concretely: compare the trajectory of a candidate input against the trajectories of known-benign inputs and known-malicious inputs across all layers, not just one. An adversarial input constructed this way will have a characteristic trajectory shape — diverging from benign inputs in the early layers while converging to the malicious fiber in the middle layers. That shape is detectable in a way that no single-layer snapshot can be.</p>
+  </div>
+
+  <p>This is not a complete solution — it trades one hard problem (single-layer probing) for a harder one (full-trajectory classification). But it is, I think, the correct framing of the problem. Current interpretability-based safety work focuses on identifying what concepts are encoded at specific layers. Trajectory monitoring requires understanding how those encodings evolve across the full forward pass, which is a more ambitious but more robust target.</p>
+
+  <h2 data-n="6">A note on the toy model</h2>
+
+  <p>I wrote a small PyTorch MLP to illustrate constraint compatibility — the idea that gradient descent can find a distinct input vector that approximately matches a target vector's activation at an intermediate layer, under an L2 regularization penalty. You can find it in the accompanying code.</p>
+
+  <p>I want to be precise about what this does and does not show. The toy model demonstrates something that is mathematically guaranteed by the architecture: a non-injective function has large fibers, and gradient descent can find points on those fibers. This is not empirical evidence for the main hypothesis; it is an illustration of the mathematical structure that motivates it. The many-to-one behavior in the toy comes from an explicit dimensionality bottleneck, not from polysemanticity. The L2 penalty is a stand-in for perplexity, not an equivalent of it. The inputs are continuous vectors, not discrete tokens.</p>
+
+  <p>The toy is useful for building the intuition. It does not validate the claim that this scales to a frontier transformer. That validation requires compute I do not have.</p>
+
+  <h2 data-n="7">Open questions</h2>
+
+  <p>The questions I most want to see explored:</p>
+
+  <p><strong>Can GCG be extended with a dual loss?</strong> The standard GCG loss targets output behavior. Adding a term for intermediate layer convergence while maintaining a perplexity penalty is the operational version of this hypothesis. Whether this optimization problem is tractable on a 70B+ model is the central empirical question.</p>
+
+  <p><strong>How does RLHF affect fiber geometry?</strong> If RLHF implicitly separates the fibers over malicious target activations from the fluent-text region of input space, it provides a geometric safety guarantee that has not been characterized. Understanding this geometry would be directly useful for safety research.</p>
+
+  <p><strong>What does a trajectory-monitoring classifier look like?</strong> The defensive idea needs to be formalized. What features of the full-trajectory activation trace are discriminative? Is it the rate of convergence across layers, the cosine distance profile, something else?</p>
+
+  <p>If any of this is useful, the torch is yours.</p>
+
+  <hr>
+
+  <h3>References</h3>
+
+  <ol class="refs">
+    <li>Elhage, N. et al. (2022). <em>Toy Models of Superposition.</em> Transformer Circuits Thread. <a href="https://transformer-circuits.pub/2022/toy_model/index.html">transformer-circuits.pub</a></li>
+    <li>Bailey, L. et al. (2024). <em>Obfuscated Activations Bypass LLM Latent-Space Defenses.</em> arXiv:2412.09565.</li>
+    <li>Zou, A. et al. (2023). <em>Universal and Transferable Adversarial Attacks on Aligned Language Models.</em> arXiv:2307.15043.</li>
+    <li>Jiang, F. et al. (2024). <em>ArtPrompt: ASCII Art-based Jailbreak Attacks against Aligned LLMs.</em> arXiv:2402.11753.</li>
+  </ol>
+
+  <footer>
+    <p>Maximilian Machedon · Software engineer · March 2026</p>
+    <p>Comments, counterarguments, and results from anyone who tests this are very welcome.</p>
+  </footer>
+
+</div>
+</body>
+</html>
