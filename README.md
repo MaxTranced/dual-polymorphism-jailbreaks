@@ -30,7 +30,7 @@ If this hypothesis scales to frontier models, it implies that single-layer activ
 
 ## Repository Contents
 
-* [**`Read the Full Essay Here`**](./index.html): The full, formatted essay detailing the causal model, the synthesis of existing literature (GCG, Anthropic's superposition work, Bailey et al. 2024), and an enumeration of the strongest counterarguments. 
+* [**`Read the Full Essay Here`**](https://www.google.com/url?sa=E&source=gmail&q=https://MaxTranced.github.io/dual-polymorphism-jailbreaks/): The full, formatted essay detailing the causal model, the synthesis of existing literature (GCG, Anthropic's superposition work, Bailey et al. 2024), and an enumeration of the strongest counterarguments. 
 * [**`lsn_proof.py`**](./lsn_proof.py): A toy PyTorch MLP demonstrating the "Constraint Compatibility" of this attack. It proves that an optimizer can force a distinct input vector to match a target's activation at a probe layer while satisfying a soft L2 penalty (a continuous proxy for a perplexity constraint). *Note: This toy relies on an architectural bottleneck to force non-injectivity, not true polysemanticity. It is included as an interactive visualization of the math, not an empirical proof of 70B LLM behavior.*
 
 ## Request for Research
